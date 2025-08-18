@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VLSM Calculator</title>
+<style>
+  :root {
+    --bg: #0f1220;
+    --panel: #171a2a;
+    --text: #e7eaf6;
+    --muted: #a0a8c3;
+    --accent: #5dd4ff;
+    --ok: #35d399;
+    --warn: #ffca3a;
+    --err: #ff6b6b;
+    --border: #26304a;
+    --focus: rgba(93,212,255,0.3);
+    --shadow: rgba(0,0,0,0.4);
+  }
+  [data-theme="light"] {
+    --bg: #f5f7fb;
+    --panel: #ffffff;
+    --text: #1a2333;
+    --muted: #51607a;
+    --accent: #007aff;
+    --ok: #1ea36e;
+    --warn: #bf8700;
+    --err: #c74242;
+    --border: #e2e8f0;
+    --focus: rgba(0,122,255,0.2);
+    --shadow: rgba(0,0,0,0.08);
+  }
+  html, body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+    color: var(--text);
+    background: radial-gradient(1200px 500px at 0% -10%, #1a2240, transparent 60%), var(--bg);
+  }
+  .container {
+    max-width: 1080px;
+    margin: 28px auto 56px;
+    padding: 0 16px;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  h1 {
+    font-size: 28px;
+    margin: 0;
+    letter-spacing: 0.3px;
+  }
+  .tagline { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .toolbar { display: flex; gap: 10px; align-items: center; }
+  .btn, button {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px var(--shadow);
+    transition: border-color .15s, background .15s, transform .05s;
+  }
+  .btn:hover, button:hover { border-color: var(--accent); }
+  .btn:active, button:active { transform: translateY(1px); }
+  .btn.primary {
+    background: linear-gradient(180deg, rgba(93,212,255,.18), rgba(93,212,255,.08));
+    border-color: rgba(93,212,255,.6);
+  }
+  .pill {
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    color: var(--accent);
+    background: rgba(93,212,255,0.12);
+    border: 1px solid rgba(93,212,255,0.35);
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 6px 24px var(--shadow);
+    margin-bottom: 16px;
+  }
+  .inline { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .input, input, select, textarea {
+    background: #0d1020;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color .12s, box-shadow .12s, background .2s;
+    width: 90%;
+  }
+  [data-theme="light"] input, [data-theme="light"] textarea { background: #f7f9fe; }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--focus);
+  }
+  label.checkbox { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .note { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .note.ok { color: var(--ok); }
+  .note.warn { color: var(--warn); }
+  .note.err { color: var(--err); }
+  .kpi {
+    display: inline-flex;
+    align-items: center; gap: 8px;
+    padding: 8px 12px;
+    background: linear-gradient(180deg, rgba(93,212,255,.12), rgba(93,212,255,.04));
+    border: 1px solid rgba(93,212,255,.4);
+    border-radius: 12px; font-size: 13px;
+  }
+  .kpi .big { font-size: 18px; font-weight: 700; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .small { font-size: 12px; color: var(--muted); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  th, td {
+    padding: 10px 10px;
+    border-bottom: 1px dashed var(--border);
+    vertical-align: top;
+  }
+  th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--muted);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  tbody tr:hover { background: rgba(93,212,255,0.05); }
+  .code {
+    background: #0b0e19;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    font-size: 12px;
+    overflow: auto;
+  }
+  .right { text-align: right; }
+  .nowrap { white-space: nowrap; }
+  .danger { color: var(--err); }
+  .footer { color: var(--muted); font-size: 12px; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="container" id="app">
+  <header>
+    <div>
+      <div class="inline">
+        <h1>VLSM Calculator</h1>
+        <span class="pill">IPv4</span>
+      </div>
+      <div class="tagline">Enter host counts in a single field (comma-separated).</div>
+    </div>
+    <div class="toolbar">
+      <button id="themeToggle" class="btn" title="Toggle theme">🌓 Theme</button>
+      <a class="btn" href="#" id="shareLinkBtn" title="Copy shareable link">🔗 Share</a>
+    </div>
+  </header>
+
+  <div class="panel">
+    <div class="inline" style="gap:12px; flex-wrap: wrap;">
+      <div style="flex:1 1 360px; min-width: 280px;">
+        <label for="baseNetwork" class="small">Base network (CIDR or dotted mask)</label>
+        <input id="baseNetwork" class="input" placeholder="e.g., 192.168.10.0/24 or 10.0.0.0 255.255.255.0" />
+        <div id="baseInfo" class="note"></div>
+      </div>
+      <div style="display:flex; gap:8px; align-items:flex-end;">
+        <button id="calcBtn" class="btn primary">🧮 Calculate</button>
+        <button id="exampleBtn" class="btn">✨ Example</button>
+        <button id="resetBtn" class="btn">↺ Reset</button>
+      </div>
+    </div>
+    <div class="collapsible" style="margin-top:10px;">
+      <div style="flex:1 1 100%; min-width: 280px;">
+        <label for="hostsInput" class="small">Hosts needed (comma-separated)</label>
+        <textarea id="hostsInput" rows="3" class="input" placeholder="200,120,80,60,50,12,2,2"></textarea>
+        <div class="note">Enter integers separated by commas (spaces/newlines also OK). Order is kept unless you enable sorting.</div>
+      </div>
+      <div class="inline" style="gap:16px; margin-top:8px;">
+        <label class="checkbox"><input type="checkbox" id="sortDesc" checked /> Sort by hosts (desc)</label>
+        <label class="checkbox"><input type="checkbox" id="enforceMin30" checked /> Enforce minimum /30</label>
+        <label class="checkbox"><input type="checkbox" id="allow31" /> Allow /31 (P2P)</label>
+        <label class="checkbox"><input type="checkbox" id="allow32" /> Allow /32 (single host)</label>
+        <label class="checkbox"><input type="checkbox" id="keepOrder" /> Keep entered order</label>
+      </div>
+    </div>
+  </div>
+
+  <div id="results" class="hidden">
+    <div class="panel">
+      <div id="summary" class="chips"></div>
+      <div id="errors" class="note err"></div>
+    </div>
+
+    <div class="panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div class="inline small">
+          <span>Results</span>
+        </div>
+        <div class="actions" style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button id="exportCsvBtn" class="btn">📄 Export CSV</button>
+          <button id="copyJsonBtn" class="btn">📋 Copy JSON</button>
+          <button id="printBtn" class="btn">🖨️ Print</button>
+        </div>
+      </div>
+      <div id="tableWrap" style="overflow:auto;">
+        <table id="resultTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th class="right">Hosts (need)</th>
+              <th class="right">Usable</th>
+              <th class="nowrap">CIDR</th>
+              <th>Netmask</th>
+              <th>Wildcard</th>
+              <th>Network</th>
+              <th>First usable</th>
+              <th>Last usable</th>
+              <th>Broadcast</th>
+              <th class="right">Block size</th>
+              <th class="right">Padding</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="resultBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div class="inline">
+          <strong>Step-by-step allocation</strong>
+          <span class="small note">(how each subnet was derived)</span>
+        </div>
+      </div>
+      <div id="steps" class="code"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Tip: Enter a base like "10.0.0.0/16", then host counts like "200,50,2". Toggle /31 for P2P links.
+  </div>
+</div>
+
+<script>
+(function(){
+  // Theme
+  const root = document.documentElement;
+  const themeToggle = document.getElementById('themeToggle');
+  function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    localStorage.setItem('vlsm_theme', theme);
+  }
+  const savedTheme = localStorage.getItem('vlsm_theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  applyTheme(savedTheme);
+  themeToggle.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+  });
+
+  // DOM
+  const baseInput = document.getElementById('baseNetwork');
+  const baseInfoEl = document.getElementById('baseInfo');
+  const hostsInput = document.getElementById('hostsInput');
+  const calcBtn = document.getElementById('calcBtn');
+  const exampleBtn = document.getElementById('exampleBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const results = document.getElementById('results');
+  const summaryEl = document.getElementById('summary');
+  const errorsEl = document.getElementById('errors');
+  const resultBody = document.getElementById('resultBody');
+  const exportCsvBtn = document.getElementById('exportCsvBtn');
+  const copyJsonBtn = document.getElementById('copyJsonBtn');
+  const printBtn = document.getElementById('printBtn');
+  const stepsEl = document.getElementById('steps');
+  const shareLinkBtn = document.getElementById('shareLinkBtn');
+  const sortDesc = document.getElementById('sortDesc');
+  const enforceMin30 = document.getElementById('enforceMin30');
+  const allow31 = document.getElementById('allow31');
+  const allow32 = document.getElementById('allow32');
+  const keepOrder = document.getElementById('keepOrder');
+
+  // IP helpers
+  function ipToInt(ip) {
+    const parts = (ip || '').trim().split('.');
+    if (parts.length !== 4) return null;
+    let n = 0;
+    for (let i = 0; i < 4; i++) {
+      if (parts[i] === '' || isNaN(+parts[i])) return null;
+      const v = Number(parts[i]);
+      if (v < 0 || v > 255) return null;
+      n = (n * 256) + v;
+    }
+    return n >>> 0;
+  }
+  function intToIp(n) {
+    n = Number(n) >>> 0;
+    return [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join('.');
+  }
+  function prefixToMaskInt(prefix) {
+    if (prefix < 0 || prefix > 32) return null;
+    if (prefix === 0) return 0 >>> 0;
+    return ((~0 << (32 - prefix)) >>> 0);
+  }
+  function maskIntToPrefix(m) {
+    m = m >>> 0;
+    for (let p = 0; p <= 32; p++) {
+      if (prefixToMaskInt(p) === m) return p;
+    }
+    return null;
+  }
+  function dottedMaskToPrefix(maskStr) {
+    const m = ipToInt(maskStr);
+    if (m === null) return null;
+    return maskIntToPrefix(m);
+  }
+  function parseBaseNetwork(input) {
+    const s = (input || '').trim().replace(/\s+/g, ' ');
+    if (!s) return { ok:false, err:'Enter a base network, e.g., 192.168.1.0/24' };
+    let ipPart = null, prefix = null;
+    if (s.includes('/')) {
+      const [ip, p] = s.split('/');
+      ipPart = ip.trim();
+      const pStr = (p || '').trim();
+      if (pStr.includes('.')) {
+        const pr = dottedMaskToPrefix(pStr);
+        if (pr == null) return { ok:false, err:'Invalid dotted mask after /' };
+        prefix = pr;
+      } else {
+        if (!/^\d{1,2}$/.test(pStr)) return { ok:false, err:'Invalid CIDR prefix' };
+        prefix = Number(pStr);
+      }
+    } else if (s.includes(' ')) {
+      const [ip, mask] = s.split(' ');
+      ipPart = ip.trim();
+      const pr = dottedMaskToPrefix(mask.trim());
+      if (pr == null) return { ok:false, err:'Invalid dotted mask' };
+      prefix = pr;
+    } else {
+      return { ok:false, err:'Use CIDR or dotted mask (e.g., 10.0.0.0/16 or 10.0.0.0 255.255.0.0)' };
+    }
+    if (prefix < 0 || prefix > 32) return { ok:false, err:'Prefix must be between 0 and 32' };
+    const ipInt = ipToInt(ipPart);
+    if (ipInt == null) return { ok:false, err:'Invalid IPv4 address' };
+    const mask = prefixToMaskInt(prefix) >>> 0;
+    const wildcard = (~mask) >>> 0;
+    const network = (ipInt & mask) >>> 0;
+    const broadcast = (network + (Math.pow(2, 32 - prefix) - 1)) >>> 0;
+    const aligned = (ipInt === network);
+    const size = Math.pow(2, 32 - prefix);
+    const usable = prefix <= 30 ? Math.max(0, size - 2) : (prefix === 31 ? 2 : 1);
+    return {
+      ok: true,
+      ip: ipInt,
+      prefix,
+      aligned,
+      network,
+      broadcast,
+      mask,
+      wildcard,
+      size,
+      usable,
+    };
+  }
+  function nextPow2(n) {
+    if (n <= 1) return 1;
+    const p = Math.ceil(Math.log2(n));
+    return Math.pow(2, p);
+  }
+  function alignUpToBlock(value, blockSize) {
+    if (blockSize <= 0) return value;
+    return Math.floor((value + blockSize - 1) / blockSize) * blockSize;
+  }
+
+  // Live base info
+  function updateBaseInfo() {
+    const parsed = parseBaseNetwork(baseInput.value);
+    if (!parsed.ok) {
+      baseInfoEl.innerHTML = `<span class="danger">${escapeHtml(parsed.err)}</span>`;
+      return;
+    }
+    const net = intToIp(parsed.network);
+    const bc = intToIp(parsed.broadcast);
+    const mask = intToIp(parsed.mask);
+    const wild = intToIp(parsed.wildcard);
+    const alignNote = parsed.aligned ? '' : ` • input IP adjusted to network boundary`;
+    baseInfoEl.innerHTML = `
+      <span class="ok">Network:</span> ${net}/${parsed.prefix}
+      • <span class="muted">Mask:</span> ${mask}
+      • <span class="muted">Wildcard:</span> ${wild}
+      • <span class="muted">Range:</span> ${net} – ${bc}
+      • <span class="muted">Addresses:</span> ${parsed.size.toLocaleString()} (${parsed.prefix <= 30 ? parsed.usable.toLocaleString() + ' usable' : (parsed.prefix === 31 ? '2 usable (/31)' : 'single /32')})
+      ${alignNote ? `<span class="small">${alignNote}</span>` : ''}
+    `;
+  }
+  baseInput.addEventListener('input', updateBaseInfo);
+
+  // Parse hosts input
+  function collectSubnets() {
+    const raw = (hostsInput.value || '').trim();
+    if (!raw) return [];
+    // Accept commas, spaces, newlines, semicolons as separators
+    const tokens = raw.split(/[,\s;]+/).map(s => s.trim()).filter(Boolean);
+    const nums = [];
+    for (const t of tokens) {
+      const n = parseInt(t, 10);
+      if (Number.isFinite(n) && n > 0) nums.push(n);
+    }
+    return nums.map((h, i) => ({ label: `Subnet ${i+1}`, hosts: h, order: i }));
+  }
+
+  // Calculation core
+  function calculate() {
+    const base = parseBaseNetwork(baseInput.value);
+    const opts = {
+      sortDesc: !!sortDesc.checked,
+      enforceMin30: !!enforceMin30.checked,
+      allow31: !!allow31.checked,
+      allow32: !!allow32.checked,
+      keepOrder: !!keepOrder.checked,
+    };
+    const subsRaw = collectSubnets();
+
+    if (!base.ok) {
+      showError(base.err);
+      return;
+    }
+    if (!subsRaw.length) {
+      showError('Enter at least one valid host count (comma-separated).');
+      return;
+    }
+
+    const subPlan = subsRaw.slice();
+    if (!opts.keepOrder) {
+      subPlan.sort((a, b) => opts.sortDesc ? (b.hosts - a.hosts) : (a.hosts - b.hosts));
+    }
+
+    const allocations = [];
+    const steps = [];
+    const errors = [];
+
+    const baseStart = base.network;
+    const baseEnd = base.broadcast;
+    const baseSize = base.size;
+    let cursor = baseStart;
+    let used = 0;
+    let padding = 0;
+
+    for (let i = 0; i < subPlan.length; i++) {
+      const s = subPlan[i];
+      let note = '';
+      let special = null;
+      let addressesNeeded, blockSize, prefix, usable;
+
+      if (opts.allow31 && s.hosts <= 2) {
+        blockSize = 2;
+        prefix = 31;
+        usable = 2;
+        addressesNeeded = 2;
+        special = '/31';
+        note = 'P2P /31';
+      } else if (opts.allow32 && s.hosts === 1) {
+        blockSize = 1;
+        prefix = 32;
+        usable = 1;
+        addressesNeeded = 1;
+        special = '/32';
+        note = 'Single host /32';
+      } else {
+        addressesNeeded = s.hosts + 2;
+        blockSize = nextPow2(addressesNeeded);
+        if (opts.enforceMin30 && blockSize < 4) {
+          blockSize = 4;
+          note = 'Min /30 enforced';
+        }
+        if (blockSize > baseSize) {
+          errors.push(`Subnet #${i+1} needs ${addressesNeeded} addresses; exceeds base network capacity.`);
+          break;
+        }
+        prefix = 32 - Math.log2(blockSize);
+        usable = Math.max(0, blockSize - 2);
+      }
+
+      const aligned = alignUpToBlock(cursor, blockSize);
+      const pad = aligned - cursor;
+      const net = aligned;
+      const end = net + blockSize - 1;
+
+      if (end > baseEnd || net < baseStart) {
+        errors.push(`No space left for subnet #${i+1} needing ${s.hosts} hosts (${blockSize} addresses, /${prefix}).`);
+        break;
+      }
+
+      const mask = prefixToMaskInt(prefix) >>> 0;
+      const wildcard = (~mask) >>> 0;
+
+      let first, last, bcast = null;
+      if (prefix <= 30) {
+        first = net + 1;
+        last = end - 1;
+        bcast = end;
+      } else if (prefix === 31) {
+        first = net;
+        last = end;
+      } else {
+        first = net;
+        last = net;
+      }
+
+      allocations.push({
+        hostsRequested: s.hosts,
+        prefix,
+        mask,
+        wildcard,
+        blockSize,
+        network: net,
+        first,
+        last,
+        broadcast: bcast,
+        usable,
+        padding: pad,
+        note
+      });
+
+      const step = [];
+      if (!special) {
+        step.push(`#${i+1}: need ${s.hosts} hosts -> need ${addressesNeeded} addresses`);
+        step.push(`Next power of two: ${blockSize} -> /${prefix}`);
+      } else {
+        step.push(`#${i+1}: using ${special} (${blockSize} addresses)`);
+      }
+      if (pad > 0) {
+        step.push(`Align ${intToIp(cursor)} up to /${prefix} boundary at ${intToIp(net)} (padding ${pad})`);
+      } else {
+        step.push(`Place at ${intToIp(net)}/${prefix}`);
+      }
+      steps.push(step.join(' • '));
+
+      used += blockSize;
+      padding += pad;
+      cursor = end + 1;
+    }
+
+    const consumed = cursor - baseStart;
+    const remaining = baseSize - consumed;
+
+    renderResults({ base, allocations, steps, errors, used, padding, remaining });
+    persistState();
+  }
+
+  function renderResults(r) {
+    results.classList.remove('hidden');
+
+    // Summary
+    summaryEl.innerHTML = '';
+    const chips = [
+      { label: 'Base', value: `${intToIp(r.base.network)}/${r.base.prefix}`, title: 'Base network' },
+      { label: 'Used', value: `${(r.used || 0).toLocaleString()} addrs`, title: 'Allocated addresses' },
+      { label: 'Padding', value: `${(r.padding || 0).toLocaleString()} addrs`, title: 'Alignment/wasted' },
+      { label: 'Remaining', value: `${(r.remaining || 0).toLocaleString()} addrs`, title: 'Unallocated addresses' },
+      { label: 'Subnets', value: `${r.allocations.length}`, title: 'Number of subnets allocated' },
+    ];
+    for (const c of chips) {
+      const el = document.createElement('div');
+      el.className = 'kpi';
+      el.title = c.title;
+      el.innerHTML = `<span>${c.label}:</span> <span class="big">${c.value}</span>`;
+      summaryEl.appendChild(el);
+    }
+
+    // Errors
+    errorsEl.textContent = '';
+    if (r.errors && r.errors.length) {
+      errorsEl.innerHTML = r.errors.map(e => `• ${escapeHtml(e)}`).join('<br/>');
+    }
+
+    // Table
+    resultBody.innerHTML = '';
+    r.allocations.forEach((a, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="right">${i+1}</td>
+        <td class="right">${a.hostsRequested.toLocaleString()}</td>
+        <td class="right">${a.usable.toLocaleString()}</td>
+        <td class="nowrap">${intToIp(a.network)}/${a.prefix}</td>
+        <td>${intToIp(a.mask)}</td>
+        <td>${intToIp(a.wildcard)}</td>
+        <td>${intToIp(a.network)}</td>
+        <td>${intToIp(a.first)}</td>
+        <td>${intToIp(a.last)}</td>
+        <td>${a.broadcast != null ? intToIp(a.broadcast) : '<span class="muted">N/A</span>'}</td>
+        <td class="right">${a.blockSize.toLocaleString()}</td>
+        <td class="right">${a.padding ? a.padding.toLocaleString() : ''}</td>
+        <td>${a.note ? `<span class="small">${escapeHtml(a.note)}</span>` : ''}</td>
+      `;
+      resultBody.appendChild(tr);
+    });
+
+    // Steps
+    stepsEl.textContent = r.steps.length ? r.steps.map((s, i) => `${i+1}. ${s}`).join('\n') : '—';
+  }
+
+  // Export & utilities
+  function exportCSV() {
+    const rows = [];
+    const headers = ['Index','Label','HostsNeeded','Usable','CIDR','Netmask','Wildcard','Network','FirstUsable','LastUsable','Broadcast','BlockSize','Padding','Notes'];
+    rows.push(headers.join(','));
+    const tbody = Array.from(resultBody.querySelectorAll('tr'));
+    tbody.forEach((tr) => {
+      const tds = Array.from(tr.querySelectorAll('td'));
+      const obj = {
+        index: tds[0].innerText.trim(),
+        label: tds[1].innerText.trim(),
+        hostsNeeded: tds[2].innerText.trim(),
+        usable: tds[3].innerText.trim(),
+        cidr: tds[4].innerText.trim(),
+        netmask: tds[5].innerText.trim(),
+        wildcard: tds[6].innerText.trim(),
+        network: tds[7].innerText.trim(),
+        first: tds[8].innerText.trim(),
+        last: tds[9].innerText.trim(),
+        broadcast: stripHtml(tds[10].innerHTML.trim()),
+        blockSize: tds[11].innerText.trim(),
+        padding: tds[12].innerText.trim(),
+        notes: stripHtml(tds[13].innerHTML.trim()),
+      };
+      const row = [
+        obj.index, csvEsc(obj.label), obj.hostsNeeded, obj.usable,
+        obj.cidr, obj.netmask, obj.wildcard, obj.network, obj.first, obj.last,
+        obj.broadcast, obj.blockSize, obj.padding, csvEsc(obj.notes)
+      ].join(',');
+      rows.push(row);
+    });
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vlsm-results.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+  function copyJSON() {
+    const data = getState();
+    navigator.clipboard.writeText(JSON.stringify(data, null, 2))
+      .then(() => toast('Copied JSON to clipboard ✅'))
+      .catch(() => toast('Copy failed'));
+  }
+  function printResults() {
+    window.print();
+  }
+  exportCsvBtn.addEventListener('click', exportCSV);
+  copyJsonBtn.addEventListener('click', copyJSON);
+  printBtn.addEventListener('click', printResults);
+
+  // Share link
+  shareLinkBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const state = getState();
+    const qs = encodeStateToHash(state);
+    const url = `${location.origin}${location.pathname}${qs}`;
+    navigator.clipboard.writeText(url)
+      .then(() => toast('Shareable link copied 🔗'))
+      .catch(() => { location.hash = qs.slice(1); toast('Link ready in address bar'); });
+  });
+
+  function encodeStateToHash(state) {
+    const net = encodeURIComponent(state.base || '');
+    const hosts = encodeURIComponent((state.hosts || []).join(','));
+    const flags = [
+      state.options.sortDesc ? 'sd1' : 'sd0',
+      state.options.enforceMin30 ? 'm30' : 'm00',
+      state.options.allow31 ? 'a31' : 'b31',
+      state.options.allow32 ? 'a32' : 'b32',
+      state.options.keepOrder ? 'ko1' : 'ko0',
+    ].join('.');
+    return `#net=${net}&h=${hosts}&opts=${flags}`;
+  }
+  function decodeStateFromHash() {
+    const h = (location.hash || '').replace(/^#/, '');
+    if (!h) return null;
+    const params = new URLSearchParams(h);
+    const base = params.get('net') ? decodeURIComponent(params.get('net')) : '';
+    let hostsRaw = params.get('h') || params.get('hosts') || '';
+    if (!hostsRaw && params.get('subs')) {
+      // Back-compat: subs as label:hosts
+      const subsStr = params.get('subs') || '';
+      const nums = subsStr.split(',').map(pair => {
+        const parts = pair.split(':');
+        const n = parseInt(parts[1] || '0', 10);
+        return Number.isFinite(n) && n > 0 ? n : null;
+      }).filter(v => v != null);
+      hostsRaw = nums.join(',');
+    }
+    const optsStr = params.get('opts') || '';
+    const options = {
+      sortDesc: optsStr.includes('sd1'),
+      enforceMin30: optsStr.includes('m30'),
+      allow31: optsStr.includes('a31'),
+      allow32: optsStr.includes('a32'),
+      keepOrder: optsStr.includes('ko1'),
+    };
+    return { base, hostsRaw, options };
+  }
+
+  // Persistence
+  function getState() {
+    const hostsArray = collectSubnets().map(s => s.hosts);
+    return {
+      base: baseInput.value || '',
+      hostsRaw: hostsInput.value || '',
+      hosts: hostsArray,
+      options: {
+        sortDesc: !!sortDesc.checked,
+        enforceMin30: !!enforceMin30.checked,
+        allow31: !!allow31.checked,
+        allow32: !!allow32.checked,
+        keepOrder: !!keepOrder.checked,
+      }
+    };
+  }
+  function setState(state) {
+    baseInput.value = state.base || '';
+    hostsInput.value = state.hostsRaw || (state.hosts ? state.hosts.join(',') : '');
+    if (state.options) {
+      sortDesc.checked = !!state.options.sortDesc;
+      enforceMin30.checked = !!state.options.enforceMin30;
+      allow31.checked = !!state.options.allow31;
+      allow32.checked = !!state.options.allow32;
+      keepOrder.checked = !!state.options.keepOrder;
+    }
+    updateBaseInfo();
+  }
+  function persistState() {
+    const state = getState();
+    localStorage.setItem('vlsm_state', JSON.stringify(state));
+  }
+  function restoreState() {
+    const hashState = decodeStateFromHash();
+    if (hashState) {
+      setState(hashState);
+      return;
+    }
+    const saved = localStorage.getItem('vlsm_state');
+    if (saved) {
+      try {
+        setState(JSON.parse(saved));
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  // Small utils
+  function escapeHtml(s) {
+    return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function stripHtml(s) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = s;
+    return tmp.innerText;
+  }
+  function csvEsc(s) {
+    s = String(s == null ? '' : s);
+    if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+    return s;
+  }
+  let toastTimer = null;
+  function toast(msg) {
+    let t = document.getElementById('toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'toast';
+      t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1b2137;color:#eaf1ff;border:1px solid #2a385a;padding:10px 14px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.3);z-index:9999;';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = '1';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.style.opacity = '0'; }, 2200);
+  }
+  function showError(msg) {
+    results.classList.remove('hidden');
+    summaryEl.innerHTML = '';
+    resultBody.innerHTML = '';
+    stepsEl.textContent = '';
+    errorsEl.innerHTML = `<span class="danger">${escapeHtml(msg)}</span>`;
+  }
+
+  // Events
+  calcBtn.addEventListener('click', calculate);
+  baseInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') calculate(); });
+  hostsInput.addEventListener('input', persistState);
+  hostsInput.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') calculate();
+  });
+
+  // Example and Reset
+  exampleBtn.addEventListener('click', () => {
+    baseInput.value = '10.10.0.0/22';
+    hostsInput.value = '200,120,80,60,50,12,2,2';
+    sortDesc.checked = true;
+    enforceMin30.checked = true;
+    allow31.checked = true;
+    allow32.checked = false;
+    keepOrder.checked = false;
+    persistState();
+    updateBaseInfo();
+  });
+  resetBtn.addEventListener('click', () => {
+    baseInput.value = '';
+    hostsInput.value = '';
+    results.classList.add('hidden');
+    baseInfoEl.textContent = '';
+    summaryEl.innerHTML = '';
+    resultBody.innerHTML = '';
+    stepsEl.textContent = '';
+    errorsEl.textContent = '';
+    localStorage.removeItem('vlsm_state');
+  });
+
+  // Init
+  restoreState();
+  updateBaseInfo();
+  const autoHasState = (hostsInput.value || '').trim().length > 0 && (baseInput.value || '').length > 0;
+  if (autoHasState) calculate();
+})();
+</script>
+</body>
+</html>
