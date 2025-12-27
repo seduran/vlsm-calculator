@@ -1,845 +1,1252 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>VLSM Calculator</title>
-<style>
-  :root {
-    --bg: #0f1220;
-    --panel: #171a2a;
-    --text: #e7eaf6;
-    --muted: #a0a8c3;
-    --accent: #5dd4ff;
-    --ok: #35d399;
-    --warn: #ffca3a;
-    --err: #ff6b6b;
-    --border: #26304a;
-    --focus: rgba(93,212,255,0.3);
-    --shadow: rgba(0,0,0,0.4);
-  }
-  [data-theme="light"] {
-    --bg: #f5f7fb;
-    --panel: #ffffff;
-    --text: #1a2333;
-    --muted: #51607a;
-    --accent: #007aff;
-    --ok: #1ea36e;
-    --warn: #bf8700;
-    --err: #c74242;
-    --border: #e2e8f0;
-    --focus: rgba(0,122,255,0.2);
-    --shadow: rgba(0,0,0,0.08);
-  }
-  html, body {
-    margin: 0;
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
-    color: var(--text);
-    background: radial-gradient(1200px 500px at 0% -10%, #1a2240, transparent 60%), var(--bg);
-  }
-  .container {
-    max-width: 1080px;
-    margin: 28px auto 56px;
-    padding: 0 16px;
-  }
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 18px;
-  }
-  h1 {
-    font-size: 28px;
-    margin: 0;
-    letter-spacing: 0.3px;
-  }
-  .tagline { color: var(--muted); font-size: 13px; margin-top: 2px; }
-  .toolbar { display: flex; gap: 10px; align-items: center; }
-  .btn, button {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 14px;
-    border-radius: 10px;
-    cursor: pointer;
-    box-shadow: 0 2px 8px var(--shadow);
-    transition: border-color .15s, background .15s, transform .05s;
-  }
-  .btn:hover, button:hover { border-color: var(--accent); }
-  .btn:active, button:active { transform: translateY(1px); }
-  .btn.primary {
-    background: linear-gradient(180deg, rgba(93,212,255,.18), rgba(93,212,255,.08));
-    border-color: rgba(93,212,255,.6);
-  }
-  .pill {
-    font-size: 12px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    color: var(--accent);
-    background: rgba(93,212,255,0.12);
-    border: 1px solid rgba(93,212,255,0.35);
-  }
-  .panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px;
-    box-shadow: 0 6px 24px var(--shadow);
-    margin-bottom: 16px;
-  }
-  .inline { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .input, input, select, textarea {
-    background: #0d1020;
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
-    outline: none;
-    transition: border-color .12s, box-shadow .12s, background .2s;
-    width: 90%;
-  }
-  [data-theme="light"] input, [data-theme="light"] textarea { background: #f7f9fe; }
-  input:focus, textarea:focus, select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--focus);
-  }
-  label.checkbox { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
-  .note { color: var(--muted); font-size: 13px; margin-top: 6px; }
-  .note.ok { color: var(--ok); }
-  .note.warn { color: var(--warn); }
-  .note.err { color: var(--err); }
-  .kpi {
-    display: inline-flex;
-    align-items: center; gap: 8px;
-    padding: 8px 12px;
-    background: linear-gradient(180deg, rgba(93,212,255,.12), rgba(93,212,255,.04));
-    border: 1px solid rgba(93,212,255,.4);
-    border-radius: 12px; font-size: 13px;
-  }
-  .kpi .big { font-size: 18px; font-weight: 700; }
-  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
-  .small { font-size: 12px; color: var(--muted); }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-  th, td {
-    padding: 10px 10px;
-    border-bottom: 1px dashed var(--border);
-    vertical-align: top;
-  }
-  th {
-    text-align: left;
-    font-weight: 600;
-    color: var(--muted);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-  tbody tr:hover { background: rgba(93,212,255,0.05); }
-  .code {
-    background: #0b0e19;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-    font-size: 12px;
-    overflow: auto;
-  }
-  .right { text-align: right; }
-  .nowrap { white-space: nowrap; }
-  .danger { color: var(--err); }
-  .footer { color: var(--muted); font-size: 12px; margin-top: 24px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Subnetting Tool | VLSM & Subnet Calculator</title>
+    <style>
+        :root {
+            --bg-primary: #0a0f1a;
+            --bg-secondary: #111827;
+            --bg-tertiary: #1f2937;
+            --bg-card: #162032;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #06b6d4;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-error: #ef4444;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --border-color: #374151;
+            --border-accent: #3b82f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 650px) {
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .tool-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: border-color 0.3s ease;
+        }
+
+        .tool-card:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .tool-header {
+            padding: 20px 25px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .tool-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .tool-title h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .tool-title p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .tool-body {
+            padding: 25px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .input-group label .hint {
+            font-weight: 400;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: 'Consolas', 'Monaco', monospace;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+
+        input[type="text"]::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), #2563eb);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .results-section {
+            margin-top: 25px;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .results-header h3 {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .summary-item .value {
+            font-size: clamp(0.9rem, 2.5vw, 1.4rem);
+            font-weight: 700;
+            color: var(--accent-secondary);
+            font-family: 'Consolas', monospace;
+            word-break: break-all;
+            overflow-wrap: break-word;
+            hyphens: auto;
+        }
+
+        .summary-item .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        thead {
+            background: var(--bg-secondary);
+        }
+
+        th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: var(--text-primary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .subnet-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: var(--accent-primary);
+            color: white;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-ok {
+            color: var(--accent-success);
+        }
+
+        .status-warn {
+            color: var(--accent-warning);
+        }
+
+        .status-error {
+            color: var(--accent-error);
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--accent-error);
+            color: var(--accent-error);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .info-box {
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid var(--accent-secondary);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h4 {
+            color: var(--accent-secondary);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .info-box p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .binary-display {
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            background: var(--bg-tertiary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        .binary-display .row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .binary-display .label {
+            width: 120px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .binary-display .value {
+            color: var(--accent-secondary);
+            letter-spacing: 0;
+        }
+
+        .binary-display .dot {
+            color: var(--text-muted);
+        }
+
+        .network-bit { color: var(--accent-success); }
+        .subnet-bit { color: var(--accent-warning); }
+        .host-bit { color: var(--accent-error); }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        .legend-color.network { background: var(--accent-success); }
+        .legend-color.subnet { background: var(--accent-warning); }
+        .legend-color.host { background: var(--accent-error); }
+
+        .visual-bar {
+            height: 30px;
+            display: flex;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+
+        .visual-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .visual-segment.network { background: var(--accent-success); }
+        .visual-segment.subnet { background: var(--accent-warning); }
+        .visual-segment.host { background: var(--accent-error); }
+
+        .full-width-section {
+            grid-column: 1 / -1;
+        }
+
+        .vlsm-visual {
+            margin-top: 20px;
+        }
+
+        .subnet-block {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .subnet-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .subnet-block-name {
+            font-weight: 600;
+            color: var(--accent-primary);
+        }
+
+        .subnet-block-cidr {
+            background: var(--accent-primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .subnet-block-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+
+        .subnet-block-details span {
+            color: var(--text-muted);
+        }
+
+        .subnet-block-details strong {
+            color: var(--text-primary);
+        }
+
+        .utilization-bar {
+            height: 6px;
+            background: var(--bg-primary);
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .utilization-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-success), var(--accent-primary));
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .tool-body {
+                padding: 20px;
+            }
+
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .binary-display .label {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="container" id="app">
-  <header>
-    <div>
-      <div class="inline">
-        <h1>VLSM Calculator</h1>
-        <span class="pill">IPv4</span>
-      </div>
-      <div class="tagline">Enter host counts in a single field (comma-separated).</div>
-    </div>
-    <div class="toolbar">
-      <button id="themeToggle" class="btn" title="Toggle theme">🌓 Theme</button>
-      <a class="btn" href="#" id="shareLinkBtn" title="Copy shareable link">🔗 Share</a>
-    </div>
-  </header>
+    <header>
+        <h1>🌐 Network Subnetting Tool</h1>
+        <p>Professional VLSM Calculator & Subnet Analysis for Network Engineers</p>
+    </header>
 
-  <div class="panel">
-    <div class="inline" style="gap:12px; flex-wrap: wrap;">
-      <div style="flex:1 1 360px; min-width: 280px;">
-        <label for="baseNetwork" class="small">Base network (CIDR or dotted mask)</label>
-        <input id="baseNetwork" class="input" placeholder="e.g., 192.168.10.0/24 or 10.0.0.0 255.255.255.0" />
-        <div id="baseInfo" class="note"></div>
-      </div>
-      <div style="display:flex; gap:8px; align-items:flex-end;">
-        <button id="calcBtn" class="btn primary">🧮 Calculate</button>
-        <button id="exampleBtn" class="btn">✨ Example</button>
-        <button id="resetBtn" class="btn">↺ Reset</button>
-      </div>
-    </div>
-    <div class="collapsible" style="margin-top:10px;">
-      <div style="flex:1 1 100%; min-width: 280px;">
-        <label for="hostsInput" class="small">Hosts needed (comma-separated)</label>
-        <textarea id="hostsInput" rows="3" class="input" placeholder="200,120,80,60,50,12,2,2"></textarea>
-        <div class="note">Enter integers separated by commas (spaces/newlines also OK). Order is kept unless you enable sorting.</div>
-      </div>
-      <div class="inline" style="gap:16px; margin-top:8px;">
-        <label class="checkbox"><input type="checkbox" id="sortDesc" checked /> Sort by hosts (desc)</label>
-        <label class="checkbox"><input type="checkbox" id="enforceMin30" checked /> Enforce minimum /30</label>
-        <label class="checkbox"><input type="checkbox" id="allow31" /> Allow /31 (P2P)</label>
-        <label class="checkbox"><input type="checkbox" id="allow32" /> Allow /32 (single host)</label>
-        <label class="checkbox"><input type="checkbox" id="keepOrder" /> Keep entered order</label>
-      </div>
-    </div>
-  </div>
+    <div class="container">
+        <div class="tools-grid">
+            <!-- VLSM Calculator -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div class="tool-icon">📊</div>
+                    <div class="tool-title">
+                        <h2>VLSM Calculator</h2>
+                        <p>Variable Length Subnet Masking</p>
+                    </div>
+                </div>
+                <div class="tool-body">
+                    <div class="info-box">
+                        <h4>How to Use</h4>
+                        <p>Enter your network address with CIDR notation and the required hosts for each subnet. Subnets will be automatically allocated using VLSM.</p>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>
+                            Network Address
+                            <span class="hint">(e.g., 192.168.1.0/24)</span>
+                        </label>
+                        <input type="text" id="vlsm-network" placeholder="192.168.1.0/24">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>
+                            Required Hosts
+                            <span class="hint">(comma-separated, e.g., 50, 30, 20, 10)</span>
+                        </label>
+                        <input type="text" id="vlsm-hosts" placeholder="50, 30, 20, 10, 5">
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="calculateVLSM()">
+                        ⚡ Calculate VLSM Subnets
+                    </button>
+                    
+                    <div class="error-message" id="vlsm-error"></div>
+                    
+                    <div class="results-section" id="vlsm-results" style="display: none;">
+                        <div class="results-header">
+                            <h3>VLSM Allocation Results</h3>
+                        </div>
+                        
+                        <div class="summary-grid" id="vlsm-summary"></div>
+                        
+                        <div class="table-container">
+                            <table id="vlsm-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Network</th>
+                                        <th>CIDR</th>
+                                        <th>Mask</th>
+                                        <th>First Host</th>
+                                        <th>Last Host</th>
+                                        <th>Broadcast</th>
+                                        <th>Needed</th>
+                                        <th>Usable</th>
+                                        <th>Util %</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="vlsm-visual" id="vlsm-visual"></div>
+                    </div>
+                </div>
+            </div>
 
-  <div id="results" class="hidden">
-    <div class="panel">
-      <div id="summary" class="chips"></div>
-      <div id="errors" class="note err"></div>
-    </div>
-
-    <div class="panel">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div class="inline small">
-          <span>Results</span>
+            <!-- Network Calculator -->
+            <div class="tool-card">
+                <div class="tool-header">
+                    <div class="tool-icon">🔍</div>
+                    <div class="tool-title">
+                        <h2>Network Calculator</h2>
+                        <p>Subnet Analysis from Host IP</p>
+                    </div>
+                </div>
+                <div class="tool-body">
+                    <div class="info-box">
+                        <h4>How to Use</h4>
+                        <p>Enter any host IP, the base network mask, and the subnet mask to analyze the subnetting scheme and find which subnet the host belongs to.</p>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>
+                            Host IP Address
+                            <span class="hint">(e.g., 192.168.1.150)</span>
+                        </label>
+                        <input type="text" id="calc-host-ip" placeholder="192.168.1.150">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>
+                            Base Netmask
+                            <span class="hint">(Original network mask - e.g., 255.255.0.0 or /16)</span>
+                        </label>
+                        <input type="text" id="calc-base-mask" placeholder="255.255.0.0 or /16">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>
+                            Subnet Netmask
+                            <span class="hint">(New subnet mask - e.g., 255.255.255.0 or /24)</span>
+                        </label>
+                        <input type="text" id="calc-subnet-mask" placeholder="255.255.255.0 or /24">
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="calculateNetwork()">
+                        🔎 Analyze Network
+                    </button>
+                    
+                    <div class="error-message" id="calc-error"></div>
+                    
+                    <div class="results-section" id="calc-results" style="display: none;">
+                        <div class="results-header">
+                            <h3>Network Analysis Results</h3>
+                        </div>
+                        
+                        <div class="summary-grid" id="calc-summary"></div>
+                        
+                        <div class="table-container">
+                            <table id="calc-table">
+                                <thead>
+                                    <tr>
+                                        <th>Property</th>
+                                        <th>Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="binary-display" id="calc-binary"></div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="actions" style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button id="exportCsvBtn" class="btn">📄 Export CSV</button>
-          <button id="copyJsonBtn" class="btn">📋 Copy JSON</button>
-          <button id="printBtn" class="btn">🖨️ Print</button>
+
+        <!-- Quick Reference -->
+        <div class="tool-card full-width-section">
+            <div class="tool-header">
+                <div class="tool-icon">📚</div>
+                <div class="tool-title">
+                    <h2>Quick Reference</h2>
+                    <p>CIDR Notation & Subnet Masks</p>
+                </div>
+            </div>
+            <div class="tool-body">
+                <div class="table-container">
+                    <table id="reference-table">
+                        <thead>
+                            <tr>
+                                <th>CIDR</th>
+                                <th>Subnet Mask</th>
+                                <th>Wildcard</th>
+                                <th>Total IPs</th>
+                                <th>Usable Hosts</th>
+                                <th>Class</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reference-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-      </div>
-      <div id="tableWrap" style="overflow:auto;">
-        <table id="resultTable">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th class="right">Hosts (need)</th>
-              <th class="right">Usable</th>
-              <th class="nowrap">CIDR</th>
-              <th>Netmask</th>
-              <th>Wildcard</th>
-              <th>Network</th>
-              <th>First usable</th>
-              <th>Last usable</th>
-              <th>Broadcast</th>
-              <th class="right">Block size</th>
-              <th class="right">Padding</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody id="resultBody"></tbody>
-        </table>
-      </div>
     </div>
 
-    <div class="panel">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <div class="inline">
-          <strong>Step-by-step allocation</strong>
-          <span class="small note">(how each subnet was derived)</span>
-        </div>
-      </div>
-      <div id="steps" class="code"></div>
-    </div>
-  </div>
+    <footer>
+        <p>Network Subnetting Tool | Built for Network Engineers</p>
+    </footer>
 
-  <div class="footer">
-    Tip: Enter a base like "10.0.0.0/16", then host counts like "200,50,2". Toggle /31 for P2P links.
-  </div>
-</div>
+    <script>
+        // ========================================
+        // UTILITY FUNCTIONS
+        // ========================================
 
-<script>
-(function(){
-  // Theme
-  const root = document.documentElement;
-  const themeToggle = document.getElementById('themeToggle');
-  function applyTheme(theme) {
-    root.setAttribute('data-theme', theme);
-    localStorage.setItem('vlsm_theme', theme);
-  }
-  const savedTheme = localStorage.getItem('vlsm_theme') || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-  applyTheme(savedTheme);
-  themeToggle.addEventListener('click', () => {
-    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    applyTheme(next);
-  });
-
-  // DOM
-  const baseInput = document.getElementById('baseNetwork');
-  const baseInfoEl = document.getElementById('baseInfo');
-  const hostsInput = document.getElementById('hostsInput');
-  const calcBtn = document.getElementById('calcBtn');
-  const exampleBtn = document.getElementById('exampleBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const results = document.getElementById('results');
-  const summaryEl = document.getElementById('summary');
-  const errorsEl = document.getElementById('errors');
-  const resultBody = document.getElementById('resultBody');
-  const exportCsvBtn = document.getElementById('exportCsvBtn');
-  const copyJsonBtn = document.getElementById('copyJsonBtn');
-  const printBtn = document.getElementById('printBtn');
-  const stepsEl = document.getElementById('steps');
-  const shareLinkBtn = document.getElementById('shareLinkBtn');
-  const sortDesc = document.getElementById('sortDesc');
-  const enforceMin30 = document.getElementById('enforceMin30');
-  const allow31 = document.getElementById('allow31');
-  const allow32 = document.getElementById('allow32');
-  const keepOrder = document.getElementById('keepOrder');
-
-  // IP helpers
-  function ipToInt(ip) {
-    const parts = (ip || '').trim().split('.');
-    if (parts.length !== 4) return null;
-    let n = 0;
-    for (let i = 0; i < 4; i++) {
-      if (parts[i] === '' || isNaN(+parts[i])) return null;
-      const v = Number(parts[i]);
-      if (v < 0 || v > 255) return null;
-      n = (n * 256) + v;
-    }
-    return n >>> 0;
-  }
-  function intToIp(n) {
-    n = Number(n) >>> 0;
-    return [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255].join('.');
-  }
-  function prefixToMaskInt(prefix) {
-    if (prefix < 0 || prefix > 32) return null;
-    if (prefix === 0) return 0 >>> 0;
-    return ((~0 << (32 - prefix)) >>> 0);
-  }
-  function maskIntToPrefix(m) {
-    m = m >>> 0;
-    for (let p = 0; p <= 32; p++) {
-      if (prefixToMaskInt(p) === m) return p;
-    }
-    return null;
-  }
-  function dottedMaskToPrefix(maskStr) {
-    const m = ipToInt(maskStr);
-    if (m === null) return null;
-    return maskIntToPrefix(m);
-  }
-  function parseBaseNetwork(input) {
-    const s = (input || '').trim().replace(/\s+/g, ' ');
-    if (!s) return { ok:false, err:'Enter a base network, e.g., 192.168.1.0/24' };
-    let ipPart = null, prefix = null;
-    if (s.includes('/')) {
-      const [ip, p] = s.split('/');
-      ipPart = ip.trim();
-      const pStr = (p || '').trim();
-      if (pStr.includes('.')) {
-        const pr = dottedMaskToPrefix(pStr);
-        if (pr == null) return { ok:false, err:'Invalid dotted mask after /' };
-        prefix = pr;
-      } else {
-        if (!/^\d{1,2}$/.test(pStr)) return { ok:false, err:'Invalid CIDR prefix' };
-        prefix = Number(pStr);
-      }
-    } else if (s.includes(' ')) {
-      const [ip, mask] = s.split(' ');
-      ipPart = ip.trim();
-      const pr = dottedMaskToPrefix(mask.trim());
-      if (pr == null) return { ok:false, err:'Invalid dotted mask' };
-      prefix = pr;
-    } else {
-      return { ok:false, err:'Use CIDR or dotted mask (e.g., 10.0.0.0/16 or 10.0.0.0 255.255.0.0)' };
-    }
-    if (prefix < 0 || prefix > 32) return { ok:false, err:'Prefix must be between 0 and 32' };
-    const ipInt = ipToInt(ipPart);
-    if (ipInt == null) return { ok:false, err:'Invalid IPv4 address' };
-    const mask = prefixToMaskInt(prefix) >>> 0;
-    const wildcard = (~mask) >>> 0;
-    const network = (ipInt & mask) >>> 0;
-    const broadcast = (network + (Math.pow(2, 32 - prefix) - 1)) >>> 0;
-    const aligned = (ipInt === network);
-    const size = Math.pow(2, 32 - prefix);
-    const usable = prefix <= 30 ? Math.max(0, size - 2) : (prefix === 31 ? 2 : 1);
-    return {
-      ok: true,
-      ip: ipInt,
-      prefix,
-      aligned,
-      network,
-      broadcast,
-      mask,
-      wildcard,
-      size,
-      usable,
-    };
-  }
-  function nextPow2(n) {
-    if (n <= 1) return 1;
-    const p = Math.ceil(Math.log2(n));
-    return Math.pow(2, p);
-  }
-  function alignUpToBlock(value, blockSize) {
-    if (blockSize <= 0) return value;
-    return Math.floor((value + blockSize - 1) / blockSize) * blockSize;
-  }
-
-  // Live base info
-  function updateBaseInfo() {
-    const parsed = parseBaseNetwork(baseInput.value);
-    if (!parsed.ok) {
-      baseInfoEl.innerHTML = `<span class="danger">${escapeHtml(parsed.err)}</span>`;
-      return;
-    }
-    const net = intToIp(parsed.network);
-    const bc = intToIp(parsed.broadcast);
-    const mask = intToIp(parsed.mask);
-    const wild = intToIp(parsed.wildcard);
-    const alignNote = parsed.aligned ? '' : ` • input IP adjusted to network boundary`;
-    baseInfoEl.innerHTML = `
-      <span class="ok">Network:</span> ${net}/${parsed.prefix}
-      • <span class="muted">Mask:</span> ${mask}
-      • <span class="muted">Wildcard:</span> ${wild}
-      • <span class="muted">Range:</span> ${net} – ${bc}
-      • <span class="muted">Addresses:</span> ${parsed.size.toLocaleString()} (${parsed.prefix <= 30 ? parsed.usable.toLocaleString() + ' usable' : (parsed.prefix === 31 ? '2 usable (/31)' : 'single /32')})
-      ${alignNote ? `<span class="small">${alignNote}</span>` : ''}
-    `;
-  }
-  baseInput.addEventListener('input', updateBaseInfo);
-
-  // Parse hosts input
-  function collectSubnets() {
-    const raw = (hostsInput.value || '').trim();
-    if (!raw) return [];
-    // Accept commas, spaces, newlines, semicolons as separators
-    const tokens = raw.split(/[,\s;]+/).map(s => s.trim()).filter(Boolean);
-    const nums = [];
-    for (const t of tokens) {
-      const n = parseInt(t, 10);
-      if (Number.isFinite(n) && n > 0) nums.push(n);
-    }
-    return nums.map((h, i) => ({ label: `Subnet ${i+1}`, hosts: h, order: i }));
-  }
-
-  // Calculation core
-  function calculate() {
-    const base = parseBaseNetwork(baseInput.value);
-    const opts = {
-      sortDesc: !!sortDesc.checked,
-      enforceMin30: !!enforceMin30.checked,
-      allow31: !!allow31.checked,
-      allow32: !!allow32.checked,
-      keepOrder: !!keepOrder.checked,
-    };
-    const subsRaw = collectSubnets();
-
-    if (!base.ok) {
-      showError(base.err);
-      return;
-    }
-    if (!subsRaw.length) {
-      showError('Enter at least one valid host count (comma-separated).');
-      return;
-    }
-
-    const subPlan = subsRaw.slice();
-    if (!opts.keepOrder) {
-      subPlan.sort((a, b) => opts.sortDesc ? (b.hosts - a.hosts) : (a.hosts - b.hosts));
-    }
-
-    const allocations = [];
-    const steps = [];
-    const errors = [];
-
-    const baseStart = base.network;
-    const baseEnd = base.broadcast;
-    const baseSize = base.size;
-    let cursor = baseStart;
-    let used = 0;
-    let padding = 0;
-
-    for (let i = 0; i < subPlan.length; i++) {
-      const s = subPlan[i];
-      let note = '';
-      let special = null;
-      let addressesNeeded, blockSize, prefix, usable;
-
-      if (opts.allow31 && s.hosts <= 2) {
-        blockSize = 2;
-        prefix = 31;
-        usable = 2;
-        addressesNeeded = 2;
-        special = '/31';
-        note = 'P2P /31';
-      } else if (opts.allow32 && s.hosts === 1) {
-        blockSize = 1;
-        prefix = 32;
-        usable = 1;
-        addressesNeeded = 1;
-        special = '/32';
-        note = 'Single host /32';
-      } else {
-        addressesNeeded = s.hosts + 2;
-        blockSize = nextPow2(addressesNeeded);
-        if (opts.enforceMin30 && blockSize < 4) {
-          blockSize = 4;
-          note = 'Min /30 enforced';
+        function ipToLong(ip) {
+            const parts = ip.split('.').map(Number);
+            if (parts.length !== 4 || parts.some(p => isNaN(p) || p < 0 || p > 255)) {
+                return null;
+            }
+            return ((parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3]) >>> 0;
         }
-        if (blockSize > baseSize) {
-          errors.push(`Subnet #${i+1} needs ${addressesNeeded} addresses; exceeds base network capacity.`);
-          break;
+
+        function longToIp(long) {
+            return [
+                (long >>> 24) & 255,
+                (long >>> 16) & 255,
+                (long >>> 8) & 255,
+                long & 255
+            ].join('.');
         }
-        prefix = 32 - Math.log2(blockSize);
-        usable = Math.max(0, blockSize - 2);
-      }
 
-      const aligned = alignUpToBlock(cursor, blockSize);
-      const pad = aligned - cursor;
-      const net = aligned;
-      const end = net + blockSize - 1;
+        function cidrToMask(cidr) {
+            if (cidr < 0 || cidr > 32) return null;
+            return cidr === 0 ? 0 : (0xFFFFFFFF << (32 - cidr)) >>> 0;
+        }
 
-      if (end > baseEnd || net < baseStart) {
-        errors.push(`No space left for subnet #${i+1} needing ${s.hosts} hosts (${blockSize} addresses, /${prefix}).`);
-        break;
-      }
+        function maskToCidr(mask) {
+            let cidr = 0;
+            let m = mask >>> 0;
+            while (m) {
+                cidr += m & 1;
+                m >>>= 1;
+            }
+            return cidr;
+        }
 
-      const mask = prefixToMaskInt(prefix) >>> 0;
-      const wildcard = (~mask) >>> 0;
+        function longToMaskString(long) {
+            return longToIp(long);
+        }
 
-      let first, last, bcast = null;
-      if (prefix <= 30) {
-        first = net + 1;
-        last = end - 1;
-        bcast = end;
-      } else if (prefix === 31) {
-        first = net;
-        last = end;
-      } else {
-        first = net;
-        last = net;
-      }
+        function maskStringToLong(mask) {
+            if (mask.startsWith('/')) {
+                const cidr = parseInt(mask.substring(1));
+                if (isNaN(cidr) || cidr < 0 || cidr > 32) return null;
+                return cidrToMask(cidr);
+            }
+            return ipToLong(mask);
+        }
 
-      allocations.push({
-        hostsRequested: s.hosts,
-        prefix,
-        mask,
-        wildcard,
-        blockSize,
-        network: net,
-        first,
-        last,
-        broadcast: bcast,
-        usable,
-        padding: pad,
-        note
-      });
+        function calculateNetworkAddress(ip, mask) {
+            return (ip & mask) >>> 0;
+        }
 
-      const step = [];
-      if (!special) {
-        step.push(`#${i+1}: need ${s.hosts} hosts -> need ${addressesNeeded} addresses`);
-        step.push(`Next power of two: ${blockSize} -> /${prefix}`);
-      } else {
-        step.push(`#${i+1}: using ${special} (${blockSize} addresses)`);
-      }
-      if (pad > 0) {
-        step.push(`Align ${intToIp(cursor)} up to /${prefix} boundary at ${intToIp(net)} (padding ${pad})`);
-      } else {
-        step.push(`Place at ${intToIp(net)}/${prefix}`);
-      }
-      steps.push(step.join(' • '));
+        function calculateBroadcast(network, mask) {
+            return (network | (~mask >>> 0)) >>> 0;
+        }
 
-      used += blockSize;
-      padding += pad;
-      cursor = end + 1;
-    }
+        function hostsNeededToCidr(hosts) {
+            let bits = 0;
+            while ((Math.pow(2, bits) - 2) < hosts) {
+                bits++;
+            }
+            return 32 - bits;
+        }
 
-    const consumed = cursor - baseStart;
-    const remaining = baseSize - consumed;
+        function ipToBinary(ip) {
+            return ip.split('.').map(octet => 
+                parseInt(octet).toString(2).padStart(8, '0')
+            ).join('.');
+        }
 
-    renderResults({ base, allocations, steps, errors, used, padding, remaining });
-    persistState();
-  }
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            el.textContent = '⚠️ ' + message;
+            el.classList.add('show');
+        }
 
-  function renderResults(r) {
-    results.classList.remove('hidden');
+        function hideError(elementId) {
+            const el = document.getElementById(elementId);
+            el.classList.remove('show');
+        }
 
-    // Summary
-    summaryEl.innerHTML = '';
-    const chips = [
-      { label: 'Base', value: `${intToIp(r.base.network)}/${r.base.prefix}`, title: 'Base network' },
-      { label: 'Used', value: `${(r.used || 0).toLocaleString()} addrs`, title: 'Allocated addresses' },
-      { label: 'Padding', value: `${(r.padding || 0).toLocaleString()} addrs`, title: 'Alignment/wasted' },
-      { label: 'Remaining', value: `${(r.remaining || 0).toLocaleString()} addrs`, title: 'Unallocated addresses' },
-      { label: 'Subnets', value: `${r.allocations.length}`, title: 'Number of subnets allocated' },
-    ];
-    for (const c of chips) {
-      const el = document.createElement('div');
-      el.className = 'kpi';
-      el.title = c.title;
-      el.innerHTML = `<span>${c.label}:</span> <span class="big">${c.value}</span>`;
-      summaryEl.appendChild(el);
-    }
+        // ========================================
+        // VLSM CALCULATOR
+        // ========================================
 
-    // Errors
-    errorsEl.textContent = '';
-    if (r.errors && r.errors.length) {
-      errorsEl.innerHTML = r.errors.map(e => `• ${escapeHtml(e)}`).join('<br/>');
-    }
+        function calculateVLSM() {
+            hideError('vlsm-error');
+            
+            const networkInput = document.getElementById('vlsm-network').value.trim();
+            const hostsInput = document.getElementById('vlsm-hosts').value.trim();
+            
+            // Parse network/CIDR
+            const networkMatch = networkInput.match(/^(\d+\.\d+\.\d+\.\d+)\/(\d+)$/);
+            if (!networkMatch) {
+                showError('vlsm-error', 'Invalid network format. Use format: 192.168.1.0/24');
+                return;
+            }
+            
+            const baseIp = ipToLong(networkMatch[1]);
+            const baseCidr = parseInt(networkMatch[2]);
+            
+            if (baseIp === null || baseCidr < 0 || baseCidr > 32) {
+                showError('vlsm-error', 'Invalid IP address or CIDR value.');
+                return;
+            }
+            
+            const baseMask = cidrToMask(baseCidr);
+            const baseNetwork = calculateNetworkAddress(baseIp, baseMask);
+            const baseBroadcast = calculateBroadcast(baseNetwork, baseMask);
+            const totalAddresses = Math.pow(2, 32 - baseCidr);
+            
+            // Parse hosts requirements
+            const hostsArr = hostsInput.split(',')
+                .map(h => parseInt(h.trim()))
+                .filter(h => !isNaN(h) && h > 0);
+            
+            if (hostsArr.length === 0) {
+                showError('vlsm-error', 'Please enter valid host requirements (comma-separated positive numbers).');
+                return;
+            }
+            
+            // Sort hosts in descending order (largest first - VLSM best practice)
+            const sortedHosts = hostsArr.map((h, i) => ({ hosts: h, originalIndex: i + 1 }))
+                .sort((a, b) => b.hosts - a.hosts);
+            
+            // Allocate subnets
+            const subnets = [];
+            let currentNetwork = baseNetwork;
+            let totalUsedAddresses = 0;
+            
+            for (const req of sortedHosts) {
+                const requiredCidr = hostsNeededToCidr(req.hosts);
+                
+                if (requiredCidr < baseCidr) {
+                    showError('vlsm-error', `Subnet for ${req.hosts} hosts requires /${requiredCidr}, which exceeds base network /${baseCidr}.`);
+                    return;
+                }
+                
+                const subnetMask = cidrToMask(requiredCidr);
+                const subnetSize = Math.pow(2, 32 - requiredCidr);
+                
+                // Align to subnet boundary
+                const alignedNetwork = calculateNetworkAddress(currentNetwork, subnetMask);
+                if (alignedNetwork < currentNetwork) {
+                    currentNetwork = alignedNetwork + subnetSize;
+                } else {
+                    currentNetwork = alignedNetwork;
+                }
+                
+                const subnetBroadcast = calculateBroadcast(currentNetwork, subnetMask);
+                
+                // Check if within base network
+                if (subnetBroadcast > baseBroadcast) {
+                    showError('vlsm-error', `Not enough address space. Cannot allocate subnet for ${req.hosts} hosts.`);
+                    return;
+                }
+                
+                const usableHosts = subnetSize - 2;
+                const utilization = ((req.hosts / usableHosts) * 100).toFixed(1);
+                
+                subnets.push({
+                    index: req.originalIndex,
+                    network: longToIp(currentNetwork),
+                    networkLong: currentNetwork,
+                    cidr: requiredCidr,
+                    mask: longToMaskString(subnetMask),
+                    firstHost: longToIp(currentNetwork + 1),
+                    lastHost: longToIp(subnetBroadcast - 1),
+                    broadcast: longToIp(subnetBroadcast),
+                    needed: req.hosts,
+                    usable: usableHosts,
+                    utilization: utilization,
+                    size: subnetSize
+                });
+                
+                totalUsedAddresses += subnetSize;
+                currentNetwork = subnetBroadcast + 1;
+            }
+            
+            // Sort by original index for display
+            subnets.sort((a, b) => a.index - b.index);
+            
+            // Display results
+            displayVLSMResults(subnets, {
+                baseNetwork: longToIp(baseNetwork),
+                baseCidr: baseCidr,
+                totalAddresses: totalAddresses,
+                usedAddresses: totalUsedAddresses,
+                remainingAddresses: totalAddresses - totalUsedAddresses,
+                subnetCount: subnets.length
+            });
+        }
 
-    // Table
-    resultBody.innerHTML = '';
-    r.allocations.forEach((a, i) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="right">${i+1}</td>
-        <td class="right">${a.hostsRequested.toLocaleString()}</td>
-        <td class="right">${a.usable.toLocaleString()}</td>
-        <td class="nowrap">${intToIp(a.network)}/${a.prefix}</td>
-        <td>${intToIp(a.mask)}</td>
-        <td>${intToIp(a.wildcard)}</td>
-        <td>${intToIp(a.network)}</td>
-        <td>${intToIp(a.first)}</td>
-        <td>${intToIp(a.last)}</td>
-        <td>${a.broadcast != null ? intToIp(a.broadcast) : '<span class="muted">N/A</span>'}</td>
-        <td class="right">${a.blockSize.toLocaleString()}</td>
-        <td class="right">${a.padding ? a.padding.toLocaleString() : ''}</td>
-        <td>${a.note ? `<span class="small">${escapeHtml(a.note)}</span>` : ''}</td>
-      `;
-      resultBody.appendChild(tr);
-    });
+        function displayVLSMResults(subnets, summary) {
+            const resultsSection = document.getElementById('vlsm-results');
+            const summaryGrid = document.getElementById('vlsm-summary');
+            const tableBody = document.querySelector('#vlsm-table tbody');
+            const visualDiv = document.getElementById('vlsm-visual');
+            
+            // Summary
+            const utilization = ((summary.usedAddresses / summary.totalAddresses) * 100).toFixed(1);
+            summaryGrid.innerHTML = `
+                <div class="summary-item">
+                    <div class="value">${summary.baseNetwork}<br>/${summary.baseCidr}</div>
+                    <div class="label">Base Network</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">${summary.subnetCount}</div>
+                    <div class="label">Subnets Created</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">${summary.totalAddresses.toLocaleString()}</div>
+                    <div class="label">Total Addresses</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">${summary.usedAddresses.toLocaleString()}</div>
+                    <div class="label">Allocated</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">${summary.remainingAddresses.toLocaleString()}</div>
+                    <div class="label">Remaining</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">${utilization}%</div>
+                    <div class="label">Space Used</div>
+                </div>
+            `;
+            
+            // Table
+            tableBody.innerHTML = subnets.map(s => `
+                <tr>
+                    <td><span class="subnet-badge">${s.index}</span></td>
+                    <td>${s.network}</td>
+                    <td>/${s.cidr}</td>
+                    <td>${s.mask}</td>
+                    <td>${s.firstHost}</td>
+                    <td>${s.lastHost}</td>
+                    <td>${s.broadcast}</td>
+                    <td>${s.needed}</td>
+                    <td>${s.usable}</td>
+                    <td class="${parseFloat(s.utilization) > 80 ? 'status-ok' : parseFloat(s.utilization) > 50 ? 'status-warn' : 'status-error'}">${s.utilization}%</td>
+                </tr>
+            `).join('');
+            
+            // Visual blocks
+            visualDiv.innerHTML = '<h4 style="margin-bottom: 15px; color: var(--text-secondary);">Subnet Allocation Visual</h4>' +
+                subnets.map(s => `
+                    <div class="subnet-block">
+                        <div class="subnet-block-header">
+                            <span class="subnet-block-name">Subnet ${s.index}</span>
+                            <span class="subnet-block-cidr">${s.network}/${s.cidr}</span>
+                        </div>
+                        <div class="subnet-block-details">
+                            <div><span>First Host:</span> <strong>${s.firstHost}</strong></div>
+                            <div><span>Last Host:</span> <strong>${s.lastHost}</strong></div>
+                            <div><span>Broadcast:</span> <strong>${s.broadcast}</strong></div>
+                            <div><span>Hosts:</span> <strong>${s.needed}/${s.usable}</strong></div>
+                        </div>
+                        <div class="utilization-bar">
+                            <div class="utilization-fill" style="width: ${s.utilization}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+            
+            resultsSection.style.display = 'block';
+        }
 
-    // Steps
-    stepsEl.textContent = r.steps.length ? r.steps.map((s, i) => `${i+1}. ${s}`).join('\n') : '—';
-  }
+        // ========================================
+        // NETWORK CALCULATOR
+        // ========================================
 
-  // Export & utilities
-  function exportCSV() {
-    const rows = [];
-    const headers = ['Index','Label','HostsNeeded','Usable','CIDR','Netmask','Wildcard','Network','FirstUsable','LastUsable','Broadcast','BlockSize','Padding','Notes'];
-    rows.push(headers.join(','));
-    const tbody = Array.from(resultBody.querySelectorAll('tr'));
-    tbody.forEach((tr) => {
-      const tds = Array.from(tr.querySelectorAll('td'));
-      const obj = {
-        index: tds[0].innerText.trim(),
-        label: tds[1].innerText.trim(),
-        hostsNeeded: tds[2].innerText.trim(),
-        usable: tds[3].innerText.trim(),
-        cidr: tds[4].innerText.trim(),
-        netmask: tds[5].innerText.trim(),
-        wildcard: tds[6].innerText.trim(),
-        network: tds[7].innerText.trim(),
-        first: tds[8].innerText.trim(),
-        last: tds[9].innerText.trim(),
-        broadcast: stripHtml(tds[10].innerHTML.trim()),
-        blockSize: tds[11].innerText.trim(),
-        padding: tds[12].innerText.trim(),
-        notes: stripHtml(tds[13].innerHTML.trim()),
-      };
-      const row = [
-        obj.index, csvEsc(obj.label), obj.hostsNeeded, obj.usable,
-        obj.cidr, obj.netmask, obj.wildcard, obj.network, obj.first, obj.last,
-        obj.broadcast, obj.blockSize, obj.padding, csvEsc(obj.notes)
-      ].join(',');
-      rows.push(row);
-    });
-    const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'vlsm-results.csv';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }
-  function copyJSON() {
-    const data = getState();
-    navigator.clipboard.writeText(JSON.stringify(data, null, 2))
-      .then(() => toast('Copied JSON to clipboard ✅'))
-      .catch(() => toast('Copy failed'));
-  }
-  function printResults() {
-    window.print();
-  }
-  exportCsvBtn.addEventListener('click', exportCSV);
-  copyJsonBtn.addEventListener('click', copyJSON);
-  printBtn.addEventListener('click', printResults);
+        function calculateNetwork() {
+            hideError('calc-error');
+            
+            const hostIpInput = document.getElementById('calc-host-ip').value.trim();
+            const baseMaskInput = document.getElementById('calc-base-mask').value.trim();
+            const subnetMaskInput = document.getElementById('calc-subnet-mask').value.trim();
+            
+            // Parse host IP
+            const hostIp = ipToLong(hostIpInput);
+            if (hostIp === null) {
+                showError('calc-error', 'Invalid host IP address format.');
+                return;
+            }
+            
+            // Parse base mask
+            const baseMask = maskStringToLong(baseMaskInput);
+            if (baseMask === null) {
+                showError('calc-error', 'Invalid base netmask format. Use 255.255.0.0 or /16');
+                return;
+            }
+            
+            // Parse subnet mask
+            const subnetMask = maskStringToLong(subnetMaskInput);
+            if (subnetMask === null) {
+                showError('calc-error', 'Invalid subnet netmask format. Use 255.255.255.0 or /24');
+                return;
+            }
+            
+            const baseCidr = maskToCidr(baseMask);
+            const subnetCidr = maskToCidr(subnetMask);
+            
+            // Validate masks
+            if (subnetCidr < baseCidr) {
+                showError('calc-error', 'Subnet mask must be equal to or smaller than base mask (higher CIDR number).');
+                return;
+            }
+            
+            // Calculations
+            const baseNetwork = calculateNetworkAddress(hostIp, baseMask);
+            const subnetNetwork = calculateNetworkAddress(hostIp, subnetMask);
+            const subnetBroadcast = calculateBroadcast(subnetNetwork, subnetMask);
+            const baseBroadcast = calculateBroadcast(baseNetwork, baseMask);
+            
+            const bitsBorrowed = subnetCidr - baseCidr;
+            const numberOfSubnets = Math.pow(2, bitsBorrowed);
+            const hostsPerSubnet = Math.pow(2, 32 - subnetCidr) - 2;
+            const totalHostsBase = Math.pow(2, 32 - baseCidr) - 2;
+            
+            // Determine which subnet number this is
+            const subnetNumber = Math.floor((subnetNetwork - baseNetwork) / Math.pow(2, 32 - subnetCidr));
+            
+            // Wildcard masks
+            const baseWildcard = (~baseMask >>> 0);
+            const subnetWildcard = (~subnetMask >>> 0);
+            
+            // Check if host is network or broadcast address
+            let hostStatus = 'Valid Host';
+            if (hostIp === subnetNetwork) hostStatus = 'Network Address (not usable)';
+            else if (hostIp === subnetBroadcast) hostStatus = 'Broadcast Address (not usable)';
+            
+            const results = {
+                hostIp: hostIpInput,
+                hostStatus: hostStatus,
+                baseNetwork: longToIp(baseNetwork),
+                baseCidr: baseCidr,
+                baseMask: longToMaskString(baseMask),
+                baseWildcard: longToMaskString(baseWildcard),
+                baseBroadcast: longToIp(baseBroadcast),
+                subnetNetwork: longToIp(subnetNetwork),
+                subnetCidr: subnetCidr,
+                subnetMask: longToMaskString(subnetMask),
+                subnetWildcard: longToMaskString(subnetWildcard),
+                subnetBroadcast: longToIp(subnetBroadcast),
+                firstUsable: longToIp(subnetNetwork + 1),
+                lastUsable: longToIp(subnetBroadcast - 1),
+                bitsBorrowed: bitsBorrowed,
+                numberOfSubnets: numberOfSubnets,
+                hostsPerSubnet: hostsPerSubnet,
+                totalHostsBase: totalHostsBase,
+                subnetNumber: subnetNumber + 1,
+                hostIpLong: hostIp,
+                subnetMaskLong: subnetMask,
+                baseMaskLong: baseMask
+            };
+            
+            displayNetworkResults(results);
+        }
 
-  // Share link
-  shareLinkBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    const state = getState();
-    const qs = encodeStateToHash(state);
-    const url = `${location.origin}${location.pathname}${qs}`;
-    navigator.clipboard.writeText(url)
-      .then(() => toast('Shareable link copied 🔗'))
-      .catch(() => { location.hash = qs.slice(1); toast('Link ready in address bar'); });
-  });
+        function displayNetworkResults(r) {
+            const resultsSection = document.getElementById('calc-results');
+            const summaryGrid = document.getElementById('calc-summary');
+            const tableBody = document.querySelector('#calc-table tbody');
+            const binaryDiv = document.getElementById('calc-binary');
+            
+            // Summary
+            summaryGrid.innerHTML = `
+                <div class="summary-item">
+                    <div class="value">${r.numberOfSubnets}</div>
+                    <div class="label">Total Subnets</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">${r.hostsPerSubnet.toLocaleString()}</div>
+                    <div class="label">Hosts/Subnet</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">${r.bitsBorrowed}</div>
+                    <div class="label">Bits Borrowed</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value">#${r.subnetNumber}</div>
+                    <div class="label">Subnet Number</div>
+                </div>
+            `;
+            
+            // Table
+            const statusClass = r.hostStatus === 'Valid Host' ? 'status-ok' : 'status-warn';
+            tableBody.innerHTML = `
+                <tr><td>Host IP Address</td><td>${r.hostIp}</td></tr>
+                <tr><td>Host Status</td><td class="${statusClass}">${r.hostStatus}</td></tr>
+                <tr><td colspan="2" style="background: var(--bg-secondary); font-weight: 600; color: var(--accent-secondary);">Base Network</td></tr>
+                <tr><td>Network Address</td><td>${r.baseNetwork}/${r.baseCidr}</td></tr>
+                <tr><td>Subnet Mask</td><td>${r.baseMask}</td></tr>
+                <tr><td>Wildcard Mask</td><td>${r.baseWildcard}</td></tr>
+                <tr><td>Broadcast Address</td><td>${r.baseBroadcast}</td></tr>
+                <tr><td>Total Usable Hosts</td><td>${r.totalHostsBase.toLocaleString()}</td></tr>
+                <tr><td colspan="2" style="background: var(--bg-secondary); font-weight: 600; color: var(--accent-warning);">Subnet (After Subnetting)</td></tr>
+                <tr><td>Subnet Network</td><td>${r.subnetNetwork}/${r.subnetCidr}</td></tr>
+                <tr><td>Subnet Mask</td><td>${r.subnetMask}</td></tr>
+                <tr><td>Wildcard Mask</td><td>${r.subnetWildcard}</td></tr>
+                <tr><td>First Usable Host</td><td>${r.firstUsable}</td></tr>
+                <tr><td>Last Usable Host</td><td>${r.lastUsable}</td></tr>
+                <tr><td>Broadcast Address</td><td>${r.subnetBroadcast}</td></tr>
+                <tr><td>Hosts in This Subnet</td><td>${r.hostsPerSubnet.toLocaleString()}</td></tr>
+            `;
+            
+            // Binary display with bit coloring - FIXED: No extra spacing
+            const baseCidr = r.baseCidr;
+            const subnetCidr = r.subnetCidr;
+            
+            function colorBits(ipStr, baseCidr, subnetCidr) {
+                const octets = ipStr.split('.').map(o => parseInt(o).toString(2).padStart(8, '0'));
+                let result = '';
+                let bitIndex = 0;
+                
+                for (let o = 0; o < octets.length; o++) {
+                    if (o > 0) result += '<span class="dot">.</span>';
+                    for (let b = 0; b < 8; b++) {
+                        const bit = octets[o][b];
+                        if (bitIndex < baseCidr) {
+                            result += `<span class="network-bit">${bit}</span>`;
+                        } else if (bitIndex < subnetCidr) {
+                            result += `<span class="subnet-bit">${bit}</span>`;
+                        } else {
+                            result += `<span class="host-bit">${bit}</span>`;
+                        }
+                        bitIndex++;
+                    }
+                }
+                return result;
+            }
+            
+            function formatBinary(ipStr) {
+                const octets = ipStr.split('.').map(o => parseInt(o).toString(2).padStart(8, '0'));
+                return octets.join('<span class="dot">.</span>');
+            }
+            
+            binaryDiv.innerHTML = `
+                <div class="row">
+                    <span class="label">Host IP:</span>
+                    <span class="value">${colorBits(r.hostIp, baseCidr, subnetCidr)}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Subnet Mask:</span>
+                    <span class="value">${formatBinary(r.subnetMask)}</span>
+                </div>
+                <div class="row">
+                    <span class="label">Network:</span>
+                    <span class="value">${colorBits(r.subnetNetwork, baseCidr, subnetCidr)}</span>
+                </div>
+                
+                <div class="visual-bar">
+                    <div class="visual-segment network" style="width: ${(baseCidr/32)*100}%">${baseCidr} bits</div>
+                    <div class="visual-segment subnet" style="width: ${(r.bitsBorrowed/32)*100}%">${r.bitsBorrowed > 0 ? r.bitsBorrowed + ' bits' : ''}</div>
+                    <div class="visual-segment host" style="width: ${((32-subnetCidr)/32)*100}%">${32-subnetCidr} bits</div>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color network"></div>
+                        <span>Network Bits (${baseCidr})</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color subnet"></div>
+                        <span>Subnet Bits (${r.bitsBorrowed})</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color host"></div>
+                        <span>Host Bits (${32-subnetCidr})</span>
+                    </div>
+                </div>
+            `;
+            
+            resultsSection.style.display = 'block';
+        }
 
-  function encodeStateToHash(state) {
-    const net = encodeURIComponent(state.base || '');
-    const hosts = encodeURIComponent((state.hosts || []).join(','));
-    const flags = [
-      state.options.sortDesc ? 'sd1' : 'sd0',
-      state.options.enforceMin30 ? 'm30' : 'm00',
-      state.options.allow31 ? 'a31' : 'b31',
-      state.options.allow32 ? 'a32' : 'b32',
-      state.options.keepOrder ? 'ko1' : 'ko0',
-    ].join('.');
-    return `#net=${net}&h=${hosts}&opts=${flags}`;
-  }
-  function decodeStateFromHash() {
-    const h = (location.hash || '').replace(/^#/, '');
-    if (!h) return null;
-    const params = new URLSearchParams(h);
-    const base = params.get('net') ? decodeURIComponent(params.get('net')) : '';
-    let hostsRaw = params.get('h') || params.get('hosts') || '';
-    if (!hostsRaw && params.get('subs')) {
-      // Back-compat: subs as label:hosts
-      const subsStr = params.get('subs') || '';
-      const nums = subsStr.split(',').map(pair => {
-        const parts = pair.split(':');
-        const n = parseInt(parts[1] || '0', 10);
-        return Number.isFinite(n) && n > 0 ? n : null;
-      }).filter(v => v != null);
-      hostsRaw = nums.join(',');
-    }
-    const optsStr = params.get('opts') || '';
-    const options = {
-      sortDesc: optsStr.includes('sd1'),
-      enforceMin30: optsStr.includes('m30'),
-      allow31: optsStr.includes('a31'),
-      allow32: optsStr.includes('a32'),
-      keepOrder: optsStr.includes('ko1'),
-    };
-    return { base, hostsRaw, options };
-  }
+        // ========================================
+        // REFERENCE TABLE - REVERSED ORDER (/8 to /32)
+        // ========================================
 
-  // Persistence
-  function getState() {
-    const hostsArray = collectSubnets().map(s => s.hosts);
-    return {
-      base: baseInput.value || '',
-      hostsRaw: hostsInput.value || '',
-      hosts: hostsArray,
-      options: {
-        sortDesc: !!sortDesc.checked,
-        enforceMin30: !!enforceMin30.checked,
-        allow31: !!allow31.checked,
-        allow32: !!allow32.checked,
-        keepOrder: !!keepOrder.checked,
-      }
-    };
-  }
-  function setState(state) {
-    baseInput.value = state.base || '';
-    hostsInput.value = state.hostsRaw || (state.hosts ? state.hosts.join(',') : '');
-    if (state.options) {
-      sortDesc.checked = !!state.options.sortDesc;
-      enforceMin30.checked = !!state.options.enforceMin30;
-      allow31.checked = !!state.options.allow31;
-      allow32.checked = !!state.options.allow32;
-      keepOrder.checked = !!state.options.keepOrder;
-    }
-    updateBaseInfo();
-  }
-  function persistState() {
-    const state = getState();
-    localStorage.setItem('vlsm_state', JSON.stringify(state));
-  }
-  function restoreState() {
-    const hashState = decodeStateFromHash();
-    if (hashState) {
-      setState(hashState);
-      return;
-    }
-    const saved = localStorage.getItem('vlsm_state');
-    if (saved) {
-      try {
-        setState(JSON.parse(saved));
-      } catch {
-        // ignore
-      }
-    }
-  }
+        function populateReferenceTable() {
+            const tbody = document.getElementById('reference-tbody');
+            const entries = [];
+            
+            // Changed: Now iterates from /8 to /32 (ascending order)
+            for (let cidr = 8; cidr <= 32; cidr++) {
+                const mask = cidrToMask(cidr);
+                const wildcard = (~mask >>> 0);
+                const totalIps = Math.pow(2, 32 - cidr);
+                const usableHosts = cidr === 32 ? 1 : (cidr === 31 ? 2 : totalIps - 2);
+                
+                let netClass = '-';
+                if (cidr >= 24) netClass = 'C';
+                else if (cidr >= 16) netClass = 'B';
+                else if (cidr >= 8) netClass = 'A';
+                
+                entries.push(`
+                    <tr>
+                        <td>/${cidr}</td>
+                        <td>${longToMaskString(mask)}</td>
+                        <td>${longToMaskString(wildcard)}</td>
+                        <td>${totalIps.toLocaleString()}</td>
+                        <td>${usableHosts.toLocaleString()}</td>
+                        <td>${netClass}</td>
+                    </tr>
+                `);
+            }
+            
+            tbody.innerHTML = entries.join('');
+        }
 
-  // Small utils
-  function escapeHtml(s) {
-    return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  }
-  function stripHtml(s) {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = s;
-    return tmp.innerText;
-  }
-  function csvEsc(s) {
-    s = String(s == null ? '' : s);
-    if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
-    return s;
-  }
-  let toastTimer = null;
-  function toast(msg) {
-    let t = document.getElementById('toast');
-    if (!t) {
-      t = document.createElement('div');
-      t.id = 'toast';
-      t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1b2137;color:#eaf1ff;border:1px solid #2a385a;padding:10px 14px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.3);z-index:9999;';
-      document.body.appendChild(t);
-    }
-    t.textContent = msg;
-    t.style.opacity = '1';
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { t.style.opacity = '0'; }, 2200);
-  }
-  function showError(msg) {
-    results.classList.remove('hidden');
-    summaryEl.innerHTML = '';
-    resultBody.innerHTML = '';
-    stepsEl.textContent = '';
-    errorsEl.innerHTML = `<span class="danger">${escapeHtml(msg)}</span>`;
-  }
+        // ========================================
+        // INITIALIZATION
+        // ========================================
 
-  // Events
-  calcBtn.addEventListener('click', calculate);
-  baseInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') calculate(); });
-  hostsInput.addEventListener('input', persistState);
-  hostsInput.addEventListener('keydown', (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') calculate();
-  });
-
-  // Example and Reset
-  exampleBtn.addEventListener('click', () => {
-    baseInput.value = '10.10.0.0/22';
-    hostsInput.value = '200,120,80,60,50,12,2,2';
-    sortDesc.checked = true;
-    enforceMin30.checked = true;
-    allow31.checked = true;
-    allow32.checked = false;
-    keepOrder.checked = false;
-    persistState();
-    updateBaseInfo();
-  });
-  resetBtn.addEventListener('click', () => {
-    baseInput.value = '';
-    hostsInput.value = '';
-    results.classList.add('hidden');
-    baseInfoEl.textContent = '';
-    summaryEl.innerHTML = '';
-    resultBody.innerHTML = '';
-    stepsEl.textContent = '';
-    errorsEl.textContent = '';
-    localStorage.removeItem('vlsm_state');
-  });
-
-  // Init
-  restoreState();
-  updateBaseInfo();
-  const autoHasState = (hostsInput.value || '').trim().length > 0 && (baseInput.value || '').length > 0;
-  if (autoHasState) calculate();
-})();
-</script>
+        document.addEventListener('DOMContentLoaded', function() {
+            populateReferenceTable();
+            
+            // Add Enter key support
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const card = this.closest('.tool-card');
+                        const btn = card.querySelector('.btn-primary');
+                        if (btn) btn.click();
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
